@@ -1,5 +1,8 @@
 import asyncio
 import logging
+import os
+from aiohttp import web
+
 import requests
 
 from aiogram import Bot, Dispatcher, types
@@ -13,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=settings.bot_token.get_secret_value())
 bot.get_updates(offset=-1)
-dp = Dispatcher()
+dp = Dispatcher(bot)
 
 
 async def send_random(message: types.Message):
@@ -72,8 +75,36 @@ async def callback_dislike(callback: types.CallbackQuery):
     await callback.answer('Вам не понравилось', show_alert=True)
 
 
+HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
+TOKEN = os.getenv('BOT_TOKEN')
+# webhook settings
+WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
+WEBHOOK_PATH = f'/webhook/{TOKEN}'
+WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
+
+# webserver settings
+WEBAPP_HOST = '0.0.0.0'
+WEBAPP_PORT = os.getenv('PORT', default=8000)
+
+
+async def on_startup(dp):
+    await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
+
+
+async def on_shutdown(dp):
+    await bot.delete_webhook()
+
+
+async def handle(request):
+    update = types.Update.to_object(await request.json())
+    await dp.process_update(update)
+    return web.Response(text="ok")
+
+
 async def main():
-    await dp.start_polling(bot)
+    app = web.Application()
+    app.add_routes([web.post('/hook', handle)])
+    web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from aiogram import Router, F, types
+from aiogram import Router, types
 from aiogram.filters import Text
 
 from states import LoginStateGroup
@@ -12,16 +12,14 @@ router = Router()
 @router.message(LoginStateGroup.login, Text('Посмотреть свои баллы'))
 async def cmd_marks_check(message: types.Message):
     kb = await subjects_inline_kb.get(message.from_user.id)
-    pg = Paginator(data=kb, size=5, dp=router)
-    await message.answer('Выберите предмет из списка', reply_markup=pg())
+    await message.answer('Выберите предмет из списка', reply_markup=kb.as_markup())
 
 
 @router.callback_query(LoginStateGroup.login, Text('go_back'))
 async def back_to_list(callback: types.CallbackQuery):
     kb = await subjects_inline_kb.get(callback.from_user.id)
-    pg = Paginator(data=kb, size=5, dp=router)
     await callback.message.edit_text(text='Выберите предмет из списка', inline_message_id=callback.inline_message_id,
-                                     reply_markup=pg())
+                                     reply_markup=kb.as_markup())
     await callback.answer()
 
 

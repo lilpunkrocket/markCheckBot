@@ -1,6 +1,5 @@
 from aiogram import Router, F, types
 from aiogram.filters import Text
-from aiogram_inline_paginations.paginator import Paginator
 
 from states import LoginStateGroup
 from keyboards import subjects_inline_kb, detail_inline_kb

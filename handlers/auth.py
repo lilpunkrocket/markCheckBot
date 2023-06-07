@@ -20,7 +20,7 @@ async def login(message: types.Message, state: FSMContext):
 @router.message(Text('Отменить'))
 async def cmd_cancel(message: types.Message, state: FSMContext):
     await state.clear()
-    await message.answer('Вы отменили авторизацию.\n Можете в любой момент времени заново войти!')
+    await message.answer('Вы отменили авторизацию.\nМожете в любой момент времени заново войти!', reply_markup=main_menu_kb.get())
 
 
 @router.message(LoginStateGroup.username, F.text, lambda message: message.text.isnumeric() and len(message.text) == 10)
